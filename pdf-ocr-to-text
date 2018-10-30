@@ -1,0 +1,39 @@
+# install poppler: http://macappstore.org/poppler/
+# brew install imagemagick
+# brew install tesseract --all-languages
+
+import os
+import pyocr
+import pyocr.builders
+from pdf2image import convert_from_path 
+from PIL import Image
+
+root     = 'path/to/folder'
+todo     = os.path.join(root, os.listdir(root)[2])
+finished = os.path.join(root, os.listdir(root)[1])
+
+tools = pyocr.get_available_tools()[0]
+
+for pdf in os.listdir(todo)[1:]:
+    pdf_path = os.path.join(todo, pdf)
+    pdf_name = os.path.splitext(pdf)[0]
+    pdf_ext  = os.path.splitext(pdf)[1]
+    pdf_dir  = os.path.join(finished, pdf_name)
+    
+    pdf_path_text  = os.path.join(pdf_dir, 'text')
+    pdf_path_image = os.path.join(pdf_dir, 'image')
+    
+    os.mkdir(pdf_dir)
+    os.mkdir(pdf_path_text)
+    os.mkdir(pdf_path_image)
+
+    image_of_pdf      = convert_from_path(pdf_path, output_folder = pdf_path_image)
+    image_name        = os.listdir(pdf_path_image)[0]
+    image_of_pdf_path = os.path.join(pdf_path_image, image_name)
+    
+    text = tools.image_to_string(Image.open(image_of_pdf_path),builder=pyocr.builders.DigitBuilder())
+    
+    text_file_location = os.path.join(pdf_path_text, pdf_name)
+    f = open(text_file_location, 'w')
+    f.write(text)
+    f.close()
